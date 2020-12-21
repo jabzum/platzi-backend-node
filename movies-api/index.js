@@ -1,10 +1,21 @@
 const express = require('express');
+const cors = require('cors');
+
 const app = express();
 
 const { config } = require('./config/index');
 const moviesApi = require('./routes/movies.js');
 
-const { logErrors, errorHandler } = require('./utils/middleware/errorHandlers');
+const {
+  logErrors,
+  errorHandler,
+  wrapErrors,
+} = require('./utils/middleware/errorHandlers');
+
+const notFoundHandler = require('./utils/middleware/notFoundHandler');
+
+//Enabling cors
+app.use(cors());
 
 //Body parser
 app.use(express.json()); //Permite que cuando se envíen datos de tipo json, los pueda interpretar.
@@ -29,10 +40,15 @@ app.get('/bisiesto/:anio', (req, res) => {
   });
 }); */
 
+//routes
 moviesApi(app);
+
+//Catch 404
+app.use(notFoundHandler);
 
 //Los middlewares de tipo error siempre tienen que ir al final de las rutas. Las rutas también son middlewares
 app.use(logErrors);
+app.use(wrapErrors);
 app.use(errorHandler);
 
 app.listen(config.port, function () {
